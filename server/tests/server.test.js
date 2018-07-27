@@ -15,7 +15,7 @@ describe('POST /products', () => {
     var name = 'Test product name';
 
     request(app)
-      .post('/products')
+      .post('/api/v1/products')
       .set('x-access-token', users[0].tokens[0].token)
       .send({ name })
       .expect(200)
@@ -37,7 +37,7 @@ describe('POST /products', () => {
 
   it('should not create product with invalid body data', (done) => {
     request(app)
-      .post('/products')
+      .post('/api/v1/products')
       .set('x-access-token', users[0].tokens[0].token)
       .send({})
       .expect(400)
@@ -57,7 +57,7 @@ describe('POST /products', () => {
 describe('GET /products', () => {
   it('should get all products', (done) => {
     request(app)
-      .get('/products')
+      .get('/api/v1/products')
       .set('x-access-token', users[0].tokens[0].token)
       .expect(200)
       .expect((res) => {
@@ -70,7 +70,7 @@ describe('GET /products', () => {
 describe('GET /products/:id', () => {
   it('should return product name', (done) => {
     request(app)
-      .get(`/products/${products[0]._id.toHexString()}`)
+      .get(`/api/v1/products/${products[0]._id.toHexString()}`)
       .set('x-access-token', users[0].tokens[0].token)
       .expect(200)
       .expect((res) => {
@@ -83,7 +83,7 @@ describe('GET /products/:id', () => {
     var hexId = new ObjectID().toHexString();
 
     request(app)
-      .get(`/products/${hexId}`)
+      .get(`/api/v1/products/${hexId}`)
       .set('x-access-token', users[0].tokens[0].token)
       .expect(404)
       .end(done);
@@ -91,7 +91,7 @@ describe('GET /products/:id', () => {
 
   it('should return 404 for non-object ids', (done) => {
     request(app)
-      .get('/products/123abc')
+      .get('/api/v1/products/123abc')
       .set('x-access-token', users[0].tokens[0].token)
       .expect(404)
       .end(done);
@@ -103,7 +103,7 @@ describe('DELETE /products/:id', () => {
     var hexId = products[1]._id.toHexString();
 
     request(app)
-      .delete(`/products/${hexId}`)
+      .delete(`/api/v1/products/${hexId}`)
       .set('x-access-token', users[0].tokens[0].token)
       .expect(200)
       .expect((res) => {
@@ -125,7 +125,7 @@ describe('DELETE /products/:id', () => {
     var hexId = new ObjectID().toHexString();
 
     request(app)
-      .delete(`/products/${hexId}`)
+      .delete(`/api/v1/products/${hexId}`)
       .set('x-access-token', users[0].tokens[0].token)
       .expect(404)
       .end(done);
@@ -133,7 +133,7 @@ describe('DELETE /products/:id', () => {
 
   it('should return 404 if object id is invalid', (done) => {
     request(app)
-      .delete('/products/sdfsdw')
+      .delete('/api/v1/products/sdfsdw')
       .set('x-access-token', users[0].tokens[0].token)
       .expect(404)
       .end(done);
@@ -146,7 +146,7 @@ describe('PUT /products/:id', () => {
     var name = 'This should be the new name';
 
     request(app)
-      .put(`/products/${hexId}`)
+      .put(`/api/v1/products/${hexId}`)
       .set('x-access-token', users[0].tokens[0].token)
       .send({
         name
@@ -165,7 +165,7 @@ describe('PUT /products/:id', () => {
     var price = 42;
 
     request(app)
-      .put(`/products/${hexId}`)
+      .put(`/api/v1/products/${hexId}`)
       .set('x-access-token', users[0].tokens[0].token)
       .send({
         price
@@ -183,7 +183,7 @@ describe('PUT /products/:id', () => {
     var amount = 123;
 
     request(app)
-      .put(`/products/${hexId}`)
+      .put(`/api/v1/products/${hexId}`)
       .set('x-access-token', users[0].tokens[0].token)
       .send({
         amount
@@ -200,7 +200,7 @@ describe('OPTIONS /*', () => {
   it('should return status 200 and empty body', (done) => {
     var hexId = products[0]._id.toHexString();
     request(app)
-      .options(`/products/${hexId}`)
+      .options(`/api/v1/products/${hexId}`)
       .set('x-access-token', users[0].tokens[0].token)
       .expect(200)
       .expect((res) => {
@@ -213,7 +213,7 @@ describe('OPTIONS /*', () => {
 describe('GET /users/me', () => {
   it('should return user if authenticated', (done) => {
     request(app)
-      .get('/users/me')
+      .get('/api/v1/users/me')
       .set('x-access-token', users[0].tokens[0].token)
       .expect(200)
       .expect((res) => {
@@ -225,7 +225,7 @@ describe('GET /users/me', () => {
 
   it('should return 401 if not authenticated', (done) => {
     request(app)
-      .get('/users/me')
+      .get('/api/v1/users/me')
       .expect(401)
       .expect((res) => {
         expect(res.body).toEqual({});
@@ -237,7 +237,7 @@ describe('GET /users/me', () => {
 describe('POST /users/login', () => {
   it('should login user and return auth token', (done) => {
     request(app)
-      .post('/users/login')
+      .post('/api/v1/users/login')
       .send({
         name: users[1].name,
         password: users[1].password
@@ -263,7 +263,7 @@ describe('POST /users/login', () => {
 
   it('should reject invalid login', (done) => {
     request(app)
-      .post('/users/login')
+      .post('/api/v1/users/login')
       .send({
         name: users[1].name,
         password: users[1].password + '1'

@@ -5,18 +5,20 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const { ObjectID } = require('mongodb');
 
-var {mongoose} = require('./db/mongoose');
+var { mongoose } = require('./db/mongoose');
 
 var { Product } = require('./models/product');
 var { User } = require('./models/user');
 var { authenticate } = require('./middleware/authenticate');
 
 var app = express();
+var v1 = express.Router();
+
 const port = process.env.PORT || 3000;
 
 app.use(bodyParser.json());
 
-app.post('/products', authenticate, (req, res) => {
+v1.post('/products', authenticate, (req, res) => {
   var product = new Product({
     name: req.body.name
   });
@@ -28,7 +30,7 @@ app.post('/products', authenticate, (req, res) => {
   });
 });
 
-app.get('/products', authenticate, (req, res) => {
+v1.get('/products', authenticate, (req, res) => {
   Product.find().then((products) => {
     res.send({ products });
   }, (e) => {
@@ -36,7 +38,7 @@ app.get('/products', authenticate, (req, res) => {
   });
 });
 
-app.get('/products/:id', authenticate, (req, res) => {
+v1.get('/products/:id', authenticate, (req, res) => {
   var id = req.params.id;
 
   if (!ObjectID.isValid(id)) {
@@ -54,7 +56,7 @@ app.get('/products/:id', authenticate, (req, res) => {
   });
 });
 
-app.delete('/products/:id', authenticate, (req, res) => {
+v1.delete('/products/:id', authenticate, (req, res) => {
   var id = req.params.id;
 
   if (!ObjectID.isValid(id)) {
@@ -72,7 +74,7 @@ app.delete('/products/:id', authenticate, (req, res) => {
   });
 });
 
-app.put('/products/:id', authenticate, (req, res) => {
+v1.put('/products/:id', authenticate, (req, res) => {
   var id = req.params.id;
   var body = _.pick(req.body, ['name', 'price', 'amount']);
 
@@ -91,17 +93,17 @@ app.put('/products/:id', authenticate, (req, res) => {
   })
 });
 
-app.options('/*', authenticate, (req, res) => {
+v1.options('/*', authenticate, (req, res) => {
   res.status(200).send();
 });
 
 // Users
 
-app.get('/users/me', authenticate, (req, res) => {
+v1.get('/users/me', authenticate, (req, res) => {
   res.send(req.user);
 });
 
-app.post('/users/login', (req, res) => {
+v1.post('/users/login', (req, res) => {
   var body = _.pick(req.body, ['name', 'password']);
   User.findByCredentials(body.name, body.password).then((user) => {
     return user.generateAuthToken().then((token) => {
@@ -112,6 +114,7 @@ app.post('/users/login', (req, res) => {
   });
 });
 
+app.use('/api/v1', v1);
 
 app.listen(port, () => {
   console.log(`Started up at port ${port}`);
