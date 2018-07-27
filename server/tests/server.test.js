@@ -4,27 +4,12 @@ const { ObjectID } = require('mongodb');
 
 const { app } = require('./../server');
 const { Product } = require('./../models/product');
+const { User } = require('./../models/user');
 
-const products =
-  [
-    {
-      _id: new ObjectID(),
-      name: 'First test product'
-    }, 
-    {
-      _id: new ObjectID(),
-      name: 'Second test product',
-      price: 10,
-      amount: 333
-    }
-  ];
+const { products, populateProducts, users, populateUsers } = require('./seed/seed');
 
-beforeEach((done) => {
-  Product.remove({}).then(() => {
-    return Product.insertMany(products);
-  }).then(() => done());
-});
-
+beforeEach(populateUsers);
+beforeEach(populateProducts);
 describe('POST /products', () => {
   it('should create a new product', (done) => {
     var name = 'Test product name';
@@ -209,5 +194,80 @@ describe('OPTIONS /*', () => {
         expect(res.body.length).toBeFalsy();
       })
       .end(done);
+  });
+});
+
+describe('GET /users/me', () => {
+  it('should return user if authenticated', (done) => {
+    request(app)
+      .get('/users/me')
+      .set('x-access-token', users[0].tokens[0].token)
+      .expect(200)
+      .expect((res) => {
+        expect(res.body._id).toBe(users[0]._id.toHexString());
+        expect(res.body.email).toBe(users[0].email);
+      })
+      .end(done);
+  });
+
+  it('should return 401 if not authenticated', (done) => {
+    request(app)
+      .get('/users/me')
+      .expect(401)
+      .expect((res) => {
+        expect(res.body).toEqual({});
+      })
+      .end(done);
+  });
+});
+
+describe('POST /users/login', () => {
+  it('should login user and return auth token', (done) => {
+    request(app)
+      .post('/users/login')
+      .send({
+        email: users[1].email,
+        password: users[1].password
+      })
+      .expect(200)
+      .expect((res) => {
+        expect(res.headers['x-access-token']).not.toBeNull();
+      })
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        User.findById(users[1]._id).then((user) => {
+          expect(user.tokens[0]).toMatchObject({
+            access: 'auth',
+            token: res.headers['x-access-token']
+          });
+          done();
+        }).catch((e) => done(e));
+      });
+  });
+
+  it('should reject invalid login', (done) => {
+    request(app)
+      .post('/users/login')
+      .send({
+        email: users[1].email,
+        password: users[1].password + '1'
+      })
+      .expect(400)
+      .expect((res) => {
+        expect(res.headers['x-access-token']).toBeUndefined();
+      })
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        User.findById(users[1]._id).then((user) => {
+          expect(user.tokens.length).toBe(0);
+          done();
+        }).catch((e) => done(e));
+      });
   });
 });
