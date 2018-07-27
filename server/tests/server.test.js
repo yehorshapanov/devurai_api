@@ -16,6 +16,7 @@ describe('POST /products', () => {
 
     request(app)
       .post('/products')
+      .set('x-access-token', users[0].tokens[0].token)
       .send({ name })
       .expect(200)
       .expect((res) => {
@@ -37,6 +38,7 @@ describe('POST /products', () => {
   it('should not create product with invalid body data', (done) => {
     request(app)
       .post('/products')
+      .set('x-access-token', users[0].tokens[0].token)
       .send({})
       .expect(400)
       .end((err, res) => {
@@ -56,6 +58,7 @@ describe('GET /products', () => {
   it('should get all products', (done) => {
     request(app)
       .get('/products')
+      .set('x-access-token', users[0].tokens[0].token)
       .expect(200)
       .expect((res) => {
         expect(res.body.products.length).toBe(2);
@@ -68,6 +71,7 @@ describe('GET /products/:id', () => {
   it('should return product name', (done) => {
     request(app)
       .get(`/products/${products[0]._id.toHexString()}`)
+      .set('x-access-token', users[0].tokens[0].token)
       .expect(200)
       .expect((res) => {
         expect(res.body.product.name).toBe(products[0].name);
@@ -80,6 +84,7 @@ describe('GET /products/:id', () => {
 
     request(app)
       .get(`/products/${hexId}`)
+      .set('x-access-token', users[0].tokens[0].token)
       .expect(404)
       .end(done);
   });
@@ -87,6 +92,7 @@ describe('GET /products/:id', () => {
   it('should return 404 for non-object ids', (done) => {
     request(app)
       .get('/products/123abc')
+      .set('x-access-token', users[0].tokens[0].token)
       .expect(404)
       .end(done);
   });
@@ -98,6 +104,7 @@ describe('DELETE /products/:id', () => {
 
     request(app)
       .delete(`/products/${hexId}`)
+      .set('x-access-token', users[0].tokens[0].token)
       .expect(200)
       .expect((res) => {
         expect(res.body.product._id).toBe(hexId);
@@ -119,13 +126,15 @@ describe('DELETE /products/:id', () => {
 
     request(app)
       .delete(`/products/${hexId}`)
+      .set('x-access-token', users[0].tokens[0].token)
       .expect(404)
       .end(done);
   });
 
   it('should return 404 if object id is invalid', (done) => {
     request(app)
-      .delete('/products/123abc')
+      .delete('/products/sdfsdw')
+      .set('x-access-token', users[0].tokens[0].token)
       .expect(404)
       .end(done);
   });
@@ -138,6 +147,7 @@ describe('PUT /products/:id', () => {
 
     request(app)
       .put(`/products/${hexId}`)
+      .set('x-access-token', users[0].tokens[0].token)
       .send({
         name
       })
@@ -156,6 +166,7 @@ describe('PUT /products/:id', () => {
 
     request(app)
       .put(`/products/${hexId}`)
+      .set('x-access-token', users[0].tokens[0].token)
       .send({
         price
       })
@@ -173,6 +184,7 @@ describe('PUT /products/:id', () => {
 
     request(app)
       .put(`/products/${hexId}`)
+      .set('x-access-token', users[0].tokens[0].token)
       .send({
         amount
       })
@@ -189,6 +201,7 @@ describe('OPTIONS /*', () => {
     var hexId = products[0]._id.toHexString();
     request(app)
       .options(`/products/${hexId}`)
+      .set('x-access-token', users[0].tokens[0].token)
       .expect(200)
       .expect((res) => {
         expect(res.body.length).toBeFalsy();
